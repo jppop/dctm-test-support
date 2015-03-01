@@ -17,6 +17,7 @@ import com.documentum.fc.client.IDfDbor;
 import com.documentum.fc.client.IDfDborEntry;
 import com.documentum.fc.client.IDfPersistentObject;
 import com.documentum.fc.client.IDfSession;
+import com.documentum.fc.client.IDfSysObject;
 import com.documentum.fc.common.DfException;
 import com.documentum.fc.common.IDfId;
 import com.documentum.fc.common.IDfList;
@@ -106,152 +107,17 @@ public abstract class RepositoryRequiredTest {
 		Repository.getInstance().releaseSession(session);
 	}
 
-	@Deprecated
-	public static boolean registerSbo(String interfaceName, String implClassname,
-			String version) throws DfException {
-		boolean registered;
-		registered = mapBusinessObjectToClassName(interfaceName, true,
-				implClassname, version);
-		return registered;
+	public IDfSysObject createObject(IDfSession session, String objectType, String objectName) throws DfException {
+		return createObject(session, objectType, objectName, true);
 	}
-
-	@Deprecated
-	public static boolean registerTbo(String typeName, String implClassname,
-			String version) throws DfException {
-		boolean registered;
-		registered = mapBusinessObjectToClassName(typeName, false,
-				implClassname, version);
-		return registered;
-	}
-
-	@Deprecated
-	public static boolean mapBusinessObjectToClassName(String strDborName,
-			boolean bDborService, String strJavaClass, String strVersion)
-			throws DfException {
-
-		boolean bRetVal = false;
-		boolean bAlreadyExists = false;
-
-		// create Client objects
-		IDfClientX clientx = new DfClientX();
-		IDfClient client = clientx.getLocalClient();
-
-		// get dbor manager
-		IDfDbor dbor = client.getDbor();
-		try {
-			dbor.lookupService(strDborName);
-			bAlreadyExists = true;
+	
+	public IDfSysObject createObject(IDfSession session, String objectType, String objectName, boolean addToDeleteQueue) throws DfException {
+		IDfSysObject dmsObject = (IDfSysObject) session.newObject(objectType);
+		dmsObject.setObjectName(objectName);
+		dmsObject.save();
+		if (addToDeleteQueue) {
+			addToDeleteList(dmsObject.getObjectId());
 		}
-		// This catch list eats all exceptions because it expects
-		// that any of these conditions should still allow us
-		// to continue.
-		catch (DfDborNotFoundException e) { // dbor.properties file not found
-		} catch (DfServiceCriticalException e) { // service found, but it’s a
-													// "type"
-		} catch (DfServiceNotFoundException e) { // service not found
-		}
-
-		// You should get here... service doesn’t exist if adding.
-		if (!bAlreadyExists) {
-			try {
-				dbor.lookupObject(strDborName);
-				bAlreadyExists = true;
-			}
-			// This catch list eats all exceptions because it expects
-			// that any of these conditions should still allow us
-			// to continue
-			catch (DfDborNotFoundException e) { // dbor.properties file not
-												// found
-			} catch (DfServiceCriticalException e) { // "type" found, but
-														// it’s a "service"
-			} catch (DfServiceNotFoundException e) { // type not found
-			}
-		}
-		if (bAlreadyExists) {
-			// System.out.println(strDborName + " already mapped to " +
-			// strLookup);
-		} else {
-			// You should expect to get here...
-			try {
-				// String s;
-				// if not already registered...
-				IDfDborEntry entry = new DfDborEntry();
-				entry.setName(strDborName);
-				entry.setServiceBased(bDborService);
-				entry.setJavaClass(strJavaClass);
-				entry.setVersion(strVersion);
-				dbor.register(entry);
-				// System.out.println("Successful:");
-				dbor = null; // unlock DBOR so lookup() can use it.
-				// beginList(strDborName); // displays the entry
-				bRetVal = true;
-			} catch (DfServiceCriticalException e2) {
-				// Get here if MSG_DBOR_NOT_DEFINED
-				// or MSG_SERVICE_EXISTS
-				System.out.println("Unable to map dbor entry");
-				System.out.println(e2.toString());
-				e2.printStackTrace();
-				bRetVal = false;
-			} catch (DfServiceException e2) {
-				// Get here if DM_VEL_DBOR_IO_ERROR
-				// on the registry.
-				System.out.println("Unable to map dbor entry");
-				System.out.println(e2.toString());
-				e2.printStackTrace();
-				bRetVal = false;
-			}
-		}
-		return bRetVal;
-	}// end mapBusinessObjectToClassName()
-
-	@Deprecated
-	public static boolean unmapBusinessObject(String strDborName)
-			throws DfException {
-		boolean bRetVal = false;
-		boolean bAlreadyExists = false;
-
-		// create Client objects
-		IDfClientX clientx = new DfClientX();
-		IDfClient client = clientx.getLocalClient();
-
-		// get dbor manager
-		IDfDbor dbor = client.getDbor();
-		try {
-			dbor.lookupService(strDborName);
-			bAlreadyExists = true;
-		}
-		// This catch list eats all exceptions because it expects
-		// that any of these conditions should still allow us
-		// to continue.
-		catch (DfDborNotFoundException e) { // dbor.properties file not found
-		} catch (DfServiceCriticalException e) { // service found, but it’s a
-													// "type"
-		} catch (DfServiceNotFoundException e) { // service not found
-		}
-
-		// You should get here... service doesn’t exist if adding.
-		if (!bAlreadyExists) {
-			try {
-				dbor.lookupObject(strDborName);
-				bAlreadyExists = true;
-			}
-			// This catch list eats all exceptions because it expects
-			// that any of these conditions should still allow us
-			// to continue
-			catch (DfDborNotFoundException e) { // dbor.properties file not
-												// found
-			} catch (DfServiceCriticalException e) { // "type" found, but
-														// it’s a "service"
-			} catch (DfServiceNotFoundException e) { // type not found
-			}
-		}
-		if (bAlreadyExists) {
-			try {
-				dbor.unregister(strDborName);
-				bRetVal = true;
-			} catch (Exception ignore) {
-			}
-		}
-		return bRetVal;
+		return dmsObject;
 	}
 }

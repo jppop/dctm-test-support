@@ -584,6 +584,10 @@ public class Repository {
 			if (configFilename == null) {
 				is = Repository.class
 						.getResourceAsStream("Repository.properties");
+				if (is == null) {
+					is = Repository.class
+							.getResourceAsStream("/Repository.properties");
+				}
 			} else {
 				is = new FileInputStream(configFilename);
 			}
