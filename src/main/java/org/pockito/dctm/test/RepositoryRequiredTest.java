@@ -6,15 +6,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import com.documentum.com.DfClientX;
-import com.documentum.com.IDfClientX;
-import com.documentum.fc.client.DfDborEntry;
-import com.documentum.fc.client.DfDborNotFoundException;
-import com.documentum.fc.client.DfServiceCriticalException;
-import com.documentum.fc.client.DfServiceException;
-import com.documentum.fc.client.DfServiceNotFoundException;
-import com.documentum.fc.client.IDfClient;
-import com.documentum.fc.client.IDfDbor;
-import com.documentum.fc.client.IDfDborEntry;
 import com.documentum.fc.client.IDfPersistentObject;
 import com.documentum.fc.client.IDfSession;
 import com.documentum.fc.client.IDfSysObject;
@@ -85,7 +76,7 @@ public abstract class RepositoryRequiredTest {
 		}
 	}
 
-	public Repository getRepository() {
+	public static Repository getRepository() {
 		return Repository.getInstance();
 	}
 	
